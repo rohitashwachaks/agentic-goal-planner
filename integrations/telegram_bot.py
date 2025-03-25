@@ -1,27 +1,34 @@
 # integrations/telegram_bot.py
 
 import os
+import asyncio
 from dotenv import load_dotenv
 from telegram import Bot
 
 load_dotenv()
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_USER_ID = os.getenv("TELEGRAM_USER_ID")
-
 
 class TelegramNotifier:
     def __init__(self):
-        self.bot = Bot(token=TELEGRAM_BOT_TOKEN)
+        self.bot = Bot(token=os.getenv("TELEGRAM_BOT_TOKEN"))
+        self.chat_id = os.getenv("TELEGRAM_USER_ID")
 
     def send_message(self, message: str):
-        if not TELEGRAM_USER_ID:
-            raise ValueError("TELEGRAM_USER_ID is not set in .env")
-        self.bot.send_message(chat_id=TELEGRAM_USER_ID, text=message)
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
 
+        if loop and loop.is_running():
+            # Already inside an async event loop, create a task
+            asyncio.create_task(self._send_async(message))
+        else:
+            # No event loop running: safe to use asyncio.run()
+            asyncio.run(self._send_async(message))
 
-# Example usage
-
-notifier = TelegramNotifier()
-notifier.send_message("Hello! Your workout starts in 30 minutes 💪")
-
+    async def _send_async(self, message: str):
+        await self.bot.send_message(chat_id=self.chat_id, text=message)
+# # Example usage
+#
+# notifier = TelegramNotifier()
+# notifier.send_message("Hello! Your workout starts in 30 minutes 💪")

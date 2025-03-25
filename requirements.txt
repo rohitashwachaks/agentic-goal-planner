@@ -6,3 +6,5 @@ google-auth-oauthlib
 python-telegram-bot
 streamlit
 watchdog
+pydantic
+litellm

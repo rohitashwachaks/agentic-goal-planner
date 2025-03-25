@@ -18,3 +18,10 @@ if __name__ == "__main__":
 
     elif choice == "3":
         workflow.send_weekly_summary()
+
+# ## Telegram version
+#
+# from integrations.telegram_bot_v2 import run_bot
+#
+# if __name__ == "__main__":
+#     run_bot()

@@ -6,6 +6,14 @@ import streamlit as st
 from storage.task_db import TaskDB
 from datetime import datetime, timedelta
 
+from models.schema import PlannedTask
+
+# Showing nicely structured task data
+st.json(PlannedTask(
+    description="Read 10 pages",
+    scheduled_date="2025-03-26"
+).dict())
+
 st.set_page_config(page_title="Agentic Goal Tracker", layout="wide")
 
 db = TaskDB()

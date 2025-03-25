@@ -4,7 +4,7 @@ import os
 import datetime
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
-from google_auth_httplib2 import Request
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 
@@ -50,12 +50,12 @@ class CalendarService:
         return created_event.get('htmlLink')
 
 
-# Example usage
-
-calendar = CalendarService()
-calendar.create_event(
-    summary="Workout - Push Day",
-    start_time="2025-03-26T10:00:00",
-    duration_minutes=60,
-    description="Upper body workout"
-)
+# # Example usage
+#
+# calendar = CalendarService()
+# calendar.create_event(
+#     summary="Workout - Push Day",
+#     start_time="2025-03-26T10:00:00",
+#     duration_minutes=60,
+#     description="Upper body workout"
+# )

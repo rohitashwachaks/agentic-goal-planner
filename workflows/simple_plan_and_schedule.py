@@ -1,4 +1,7 @@
 import datetime
+
+from crewai.crews import CrewOutput
+
 from agents.planner_agent import GoalPlanner
 from agents.task_feedback_agent import TaskFeedbackAgent
 from integrations.calendar import CalendarService
@@ -36,15 +39,8 @@ class GoalExecutionWorkflow:
             self.notifier.send_message(f"📅 Scheduled: {task} on {start_time[:10]}\n{event_link}")
             self.db.add_task(description=task, scheduled_date=start_time[:10])
 
-    def _parse_tasks(self, tasks_output: str):
-        lines = tasks_output.strip().split('\n')
-        parsed = []
-        for line in lines:
-            if line.strip():
-                task = line.split('. ', 1)[-1].strip()
-                if task:
-                    parsed.append(task)
-        return parsed
+    def _parse_tasks(self, tasks_output: CrewOutput):
+        return [k.strip() for k in tasks_output.raw.split('\n')]
 
     def run_daily_checkin(self, task_today: str):
         llm = self.planner.llm.generate
