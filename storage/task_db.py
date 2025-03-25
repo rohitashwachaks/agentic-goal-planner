@@ -5,6 +5,7 @@ from datetime import datetime
 
 DB_NAME = "task_data.db"
 
+
 class TaskDB:
     def __init__(self):
         self.conn = sqlite3.connect(DB_NAME)

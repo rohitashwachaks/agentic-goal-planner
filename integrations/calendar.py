@@ -11,6 +11,8 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 load_dotenv()
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
+CREDENTIALS_FILE = os.getenv("GOOGLE_CREDENTIALS_FILE", "./credentials/credentials.json")
+TOKEN_FILE = os.getenv("GOOGLE_TOKEN_FILE", "./credentials/token.json")
 
 
 class CalendarService:

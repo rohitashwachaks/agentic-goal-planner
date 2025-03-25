@@ -21,7 +21,7 @@ class GoalExecutionWorkflow:
 
         self.notifier.send_message(f"🧠 Goal breakdown for: {user_goal}\n\n{tasks_output}")
 
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
         task_list = self._parse_tasks(tasks_output)
 
         for idx, task in enumerate(task_list):
@@ -61,7 +61,7 @@ class GoalExecutionWorkflow:
 
         if not was_done:
             # Reschedule logic: push to next day at same time
-            tomorrow = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+            tomorrow = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1)
             start_time = tomorrow.replace(hour=10, minute=0).isoformat()
             link = self.calendar.create_event(
                 summary=task_today,
@@ -72,7 +72,7 @@ class GoalExecutionWorkflow:
             self.notifier.send_message(f"🔁 Task rescheduled to tomorrow\n{link}")
 
     def run_daily_checkin_all(self):
-        today = datetime.datetime.utcnow().date().isoformat()
+        today = datetime.datetime.now(datetime.UTC).date().isoformat()
         tasks_today = self.db.get_pending_tasks(today)
 
         if not tasks_today:
@@ -96,7 +96,7 @@ class GoalExecutionWorkflow:
 
             if not was_done:
                 # Reschedule to tomorrow
-                tomorrow = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+                tomorrow = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1)
                 new_time = tomorrow.replace(hour=10, minute=0).isoformat()
                 self.calendar.create_event(
                     summary=task,
