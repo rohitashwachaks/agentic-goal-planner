@@ -1,6 +1,7 @@
+import sys
 import os
 
-os.chdir('../')  # Ensure the working directory is set to the project root
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import streamlit as st
 from storage.task_db import TaskDB
@@ -14,7 +15,7 @@ st.json(PlannedTask(
     scheduled_date="2025-03-26"
 ).dict())
 
-st.set_page_config(page_title="Agentic Goal Tracker", layout="wide")
+# st.set_page_config(page_title="Agentic Goal Tracker", layout="wide")
 
 db = TaskDB()
 
