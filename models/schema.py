@@ -1,8 +1,9 @@
-# models/schemas.py
-
+from dataclasses import dataclass, field
+from datetime import datetime, UTC
+from dataclasses_json import dataclass_json
+from huggingface_hub.constants import default_home
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
 
 
 class Goal(BaseModel):
@@ -12,10 +13,13 @@ class Goal(BaseModel):
 
 
 class PlannedTask(BaseModel):
-    description: str
-    scheduled_date: str  # "YYYY-MM-DD"
+    action: str  # Action to be taken
+    contribution: str  # Contribution to the goal
+    scheduled_date: str = datetime.now(UTC).strftime("%Y-%m-%d")  # "YYYY-MM-DD"
     duration_minutes: int = 60
-    status: str = "pending"
+    frequency: str = "daily"  # e.g., "daily", "weekly"
+    end_date: Optional[str] = None  # "YYYY-MM-DD" or None
+    status: Optional[str] = None  # e.g., "pending", "done", "missed"
     rescheduled_to: Optional[str] = None
 
 

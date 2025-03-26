@@ -1,20 +1,21 @@
 import datetime
 
 from crewai.crews import CrewOutput
+from sympy.physics.units import frequency
 
-from agents.planner_agent import GoalPlanner
+from agents.planner_agent import GoalPlanner, plan_tasks
 from agents.task_feedback_agent import TaskFeedbackAgent
 from integrations.calendar import CalendarService
 from integrations.telegram_bot import TelegramNotifier
-from storage.task_db import TaskDB
+from storage.task_db import task_db
 
 
 class GoalExecutionWorkflow:
-    def __init__(self, model_name="mistral"):
-        self.db = TaskDB()
-        self.planner = GoalPlanner(model_name)
+    def __init__(self):
+        self.db = task_db
+        self.planner = GoalPlanner()
         self.calendar = CalendarService()
-        self.notifier = TelegramNotifier()
+        self.notifier = TelegramNotifier.get_instance()
 
     def run(self, user_goal: str):
         print(f"\n🧠 Planning for goal: {user_goal}\n")
@@ -22,25 +23,37 @@ class GoalExecutionWorkflow:
 
         print(f"📋 Tasks:\n{tasks_output}")
 
-        self.notifier.send_message(f"🧠 Goal breakdown for: {user_goal}\n\n{tasks_output}")
+        task_list = plan_tasks(tasks_output)
+        task_str = "\n\n".join([f"- **{task.action}**: {task.contribution} (scheduled: {task.scheduled_date})" for task in task_list])
+        self.notifier.send_message(f"🧠 Goal breakdown for: {user_goal}\n\n{task_str}")
 
         now = datetime.datetime.now(datetime.UTC)
-        task_list = self._parse_tasks(tasks_output)
 
         for idx, task in enumerate(task_list):
-            task_time = now + datetime.timedelta(days=idx)
+            task_time_str = max(task.scheduled_date, now.date().strftime("%Y-%m-%d"))
+            task_time = datetime.datetime.fromisoformat(task_time_str)
             start_time = task_time.replace(hour=10, minute=0).isoformat()
-            event_link = self.calendar.create_event(
-                summary=task,
-                start_time=start_time,
-                duration_minutes=60,
-                description=f"Task from goal: {user_goal}"
-            )
-            self.notifier.send_message(f"📅 Scheduled: {task} on {start_time[:10]}\n{event_link}")
-            self.db.add_task(description=task, scheduled_date=start_time[:10])
 
-    def _parse_tasks(self, tasks_output: CrewOutput):
-        return [k.strip() for k in tasks_output.raw.split('\n')]
+            end_time = start_time
+            if task.end_date:
+                end_time = datetime.datetime.fromisoformat(task.end_date).replace(hour=10, minute=0).isoformat()
+                if end_time < start_time:
+                    end_time = start_time
+
+            freq = task.frequency
+
+            for event_date in [start_time, end_time, freq]:
+                if event_date < now.isoformat():
+                    # Skip scheduling for past events
+                    continue
+                event_link = self.calendar.create_event(
+                    summary=task.action,
+                    start_time=start_time,
+                    duration_minutes=task.duration_minutes,
+                    description=f"Task from goal: {user_goal}\n Contribution: {task.contribution}"
+                )
+                self.notifier.send_message(f"📅 Scheduled: {task} on {start_time[:10]}\n{event_link}")
+                # self.db.add_task(description=task, scheduled_date=start_time[:10])
 
     def run_daily_checkin(self, task_today: str):
         llm = self.planner.llm.generate

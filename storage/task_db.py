@@ -59,3 +59,6 @@ class TaskDB:
                 LIMIT 50
             """)
             return result.fetchall()
+
+
+task_db = TaskDB()

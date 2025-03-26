@@ -1,22 +1,23 @@
-import subprocess
+# llm/llm_wrapper.py
+
+import os
+from dotenv import load_dotenv
+from litellm import completion
+
+load_dotenv()
 
 
-class LocalLLM:
-    # LocalLLM is a wrapper for local LLMs using the Ollama CLI.
-    def __init__(self, model_name="mistral"):
-        self.model = model_name
+class LLMRouter:
+    def __init__(self):
+        self.llm_type = os.getenv("USE_LLM", "gpt4o").lower()
+        self.model = os.getenv("LITELLM_MODEL_NAME", "gpt-4o")
 
-    def generate(self, prompt: str) -> str:
-        """Call local LLM via Ollama."""
-        result = subprocess.run(
-            ["ollama", "run", self.model],
-            input=prompt.encode(),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-        )
-        output = result.stdout.decode()
-        return self._clean_output(output)
+        # For Ollama (custom route override)
+        if self.llm_type == "ollama":
+            self.model = os.getenv('LITELLM_OLLAMA_MODEL', 'ollama/mistral')
 
-    def _clean_output(self, raw_output):
-        """Optional: Clean response based on model's output format."""
-        return raw_output.strip()
+    def get_llm(self):
+        return completion(model=self.model)  # ✅ This is what CrewAI expects
+
+    def get_model_name(self):
+        return self.model
